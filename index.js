@@ -25,5 +25,5 @@ client.once('ready', async () => {
   console.log("Bot joined VC and will stay there 🧷");
 });
 
-client.login("process.env.token");                await adminChannel.send(`📌 Wishlist submitted by **${interaction.user.tag}**:\n"${message}"`);
+client.login("process.env.TOKEN");            
 
