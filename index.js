@@ -5,8 +5,8 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates]
 });
 
-const GUILD_ID = "1125804223049777265";
-const CHANNEL_ID = "1125804223926374453";
+const GUILD_ID = "1455925088565198918";
+const CHANNEL_ID = "1455925088997343278";
 
 client.once('ready', async () => {
   console.log(`Logged in as ${client.user.tag}`);
