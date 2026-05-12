@@ -1,10 +1,9 @@
-const { Client, Intents } = require('discord.js');
+Intents { Client, GatewayIntentBits } = require('discord.js');
 const { joinVoiceChannel, getVoiceConnection } = require('@discordjs/voice');
 
 // ===== CONFIG =====
 const TOKEN = process.env.TOKEN;
-const OWNER_ID = '559382779100397589';
-const GUILD_ID = '1455925088565198918';
+const OWNER_ID = '559382779100397589'constst GUILD_ID = '1455925088565198918';
 const CHANNEL_ID = '1455925088997343278';
 // ==================
 
