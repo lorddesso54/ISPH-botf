@@ -1,40 +1,38 @@
-const { Client, GatewayIntentBits } = require('discord.js');
-const { joinVoiceChannel, createVoiceConnection } = require('@discordjs/voice');
+const { Client, Collection, Intents } = require('discord.js');
+const { token } = require('./config.json');
 
-const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates]
+const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+
+// Command handler
+const commands = new Collection();
+
+const loadCommands = async () => {
+  const commandFiles = await fs.readdirSync('./commands');
+  for (const file of commandFiles) {
+    if (file.endsWith('.js')) {
+      const command = require(`./commands/${file}`);
+      commands.set(command.name, command);
+    }
+  }
+};
+
+// Event handlers
+client.on('ready', () => {
+  console.log('Bot is ready!');
 });
 
-const GUILD_ID = "1455925088565198918";
-const CHANNEL_ID = "1455925088997343278";
-
-let voiceConnection = null;
-
-client.once('ready', async () => {
-  console.log(`Logged in as ${client.user.tag}`);
-
-  const guild = await client.guilds.fetch(GUILD_ID);
-  const channel = guild.channels.fetch(CHANNEL_ID).then(channel => channel);
-
-  function connectToVoice() {
-    joinVoiceChannel({
-      channelId: CHANNEL_ID,
-      guildId: GUILD_ID,
-      adapterCreator: guild.voiceAdapterCreator,
-    })
-      .then(connection => {
-        voiceConnection = connection;
-        console.log("Bot joined VC and will stay there 🧷");
-      })
-      .catch(error => {
-        console.error("Error joining voice channel:", error);
-        reconnect();
-      });
+client.on('messageCreate', (message) => {
+  if (message.author.bot) return;
+  const commandName = message.content.trim().split(' ')[0].toLowerCase();
+  if (commands.has(commandName)) {
+    commands.get(commandName).run(client, message);
   }
+});
 
-  function reconnect() {
-    try {
-      voiceConnection.destroy();
+// Load commands
+loadCommands();
+
+client.login(token);      voiceConnection.destroy();
       voiceConnection = null;
       setTimeout(connectToVoice, 1000); // Wait 1 second before reconnecting
     } catch (error) {
