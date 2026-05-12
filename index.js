@@ -1,57 +1,83 @@
-const { Client, Collection, Intents } = require('discord.js');
-const { token } = require('./config.json');
+const { Client, Intents } = require('discord.js');
+const { joinVoiceChannel, getVoiceConnection } = require('@discordjs/voice');
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+// ===== CONFIG =====
+const TOKEN = process.env.TOKEN;
+const OWNER_ID = '559382779100397589';
+const GUILD_ID = '1455925088565198918';
+const CHANNEL_ID = '1455925088997343278';
+// ==================
 
-// Command handler
-const commands = new Collection();
+if (!TOKEN) {
+  console.error('❌ Missing TOKEN (use export TOKEN=...)');
+  process.exit(1);
+}
 
-const loadCommands = async () => {
-  const commandFiles = await fs.readdirSync('./commands');
-  for (const file of commandFiles) {
-    if (file.endsWith('.js')) {
-      const command = require(`./commands/${file}`);
-      commands.set(command.name, command);
-    }
-  }
-};
-
-// Event handlers
-client.on('ready', () => {
-  console.log('Bot is ready!');
+const client = new Client({
+  intents: [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MESSAGES,
+    Intents.FLAGS.GUILD_VOICE_STATES
+  ]
 });
 
-client.on('messageCreate', (message) => {
+// ===== READY =====
+client.once('ready', () => {
+  console.log(`✅ Logged in as ${client.user.tag}`);
+  setTimeout(connectToVoice, 2000);
+});
+
+// ===== SAY COMMAND =====
+client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
-  const commandName = message.content.trim().split(' ')[0].toLowerCase();
-  if (commands.has(commandName)) {
-    commands.get(commandName).run(client, message);
+  if (message.author.id !== OWNER_ID) return;
+  if (!message.content.startsWith('!say')) return;
+
+  const text = message.content.slice(4).trim();
+  if (!text) return;
+
+  await message.delete().catch(console.error);
+  await message.channel.send(text);
+});
+
+// ===== VOICE CONNECT =====
+function connectToVoice() {
+  const guild = client.guilds.cache.get(GUILD_ID);
+
+  if (!guild) {
+    console.log('❌ Guild not found');
+    return setTimeout(connectToVoice, 5000);
   }
-});
 
-// Load commands
-loadCommands();
+  try {
+    const connection = getVoiceConnection(GUILD_ID);
+    if (connection) connection.destroy();
 
-client.login(token);      voiceConnection.destroy();
-      voiceConnection = null;
-      setTimeout(connectToVoice, 1000); // Wait 1 second before reconnecting
-    } catch (error) {
-      console.error("Error reconnecting to voice channel:", error);
-      reconnect(); // Try again after 1 second
-    }
+    joinVoiceChannel({
+      channelId: CHANNEL_ID,
+      guildId: GUILD_ID,
+      adapterCreator: guild.voiceAdapterCreator,
+    });
+
+    console.log('🔊 Connected to voice channel');
+  } catch (err) {
+    console.error('❌ Voice error:', err);
+    setTimeout(connectToVoice, 5000);
   }
+}
 
-  connectToVoice();
-});
+// ===== CLEAN RECONNECT (SAFE TIMER) =====
+setInterval(() => {
+  const connection = getVoiceConnection(GUILD_ID);
+  if (!connection) {
+    console.log('🔁 Reconnecting voice...');
+    connectToVoice();
+  }
+}, 15000);
 
-client.on('voiceStateUpdate', (oldState, newState) => {
-  // You can add logic here to handle voice state updates
-});
+// ===== ERROR HANDLING =====
+process.on('uncaughtException', console.error);
+process.on('unhandledRejection', console.error);
 
-process.on('uncaughtException', error => {
-  console.error("Uncaught Exception:", error);
-});
-
-process.on('unhandledRejection', error => {
-  console.error("Unhandled Rejection:", error);
-});
+// ===== LOGIN =====
+client.login(TOKEN);
