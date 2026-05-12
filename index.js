@@ -1,4 +1,4 @@
-Intents { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits } = require('discord.js');
 const { joinVoiceChannel, getVoiceConnection } = require('@discordjs/voice');
 
 // ===== CONFIG =====
