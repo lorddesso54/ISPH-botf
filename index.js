@@ -28,18 +28,6 @@ client.once('ready', () => {
   setTimeout(connectToVoice, 2000);
 });
 
-// ===== SAY COMMAND =====
-client.on('messageCreate', async (message) => {
-  if (message.author.bot) return;
-  if (message.author.id !== OWNER_ID) return;
-  if (!message.content.startsWith('!say')) return;
-
-  const text = message.content.slice(4).trim();
-  if (!text) return;
-
-  await message.delete().catch(console.error);
-  await message.channel.send(text);
-});
 
 // ===== VOICE CONNECT =====
 function connectToVoice() {
